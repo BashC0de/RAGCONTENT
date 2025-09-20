@@ -54,7 +54,14 @@ generation_config = {
     "temperature": 0.7,
     "max_tokens": 1500
 }
-raw_output = generate_content(query)
+content_request = {
+    "query": query,
+    "tone": "professional",
+    "target_audience": "developers"
+}
+
+raw_output = generate_content(content_request, context_docs, generation_config)
+
 formatted_output = format_output(
     generated=raw_output,
     style="professional_conversational",

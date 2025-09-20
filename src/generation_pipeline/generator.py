@@ -44,6 +44,9 @@ def select_model(preferred=None):
 def build_prompt(content_request: Dict, context_docs: List[Dict]) -> str:
     context = "\n\n".join([f"[source:{d.get('id')}] {d.get('text')[:1000]}" for d in context_docs])
     system = SYSTEM_PROMPT.format(style="professional", tone=content_request.get("tone","neutral"), audience=content_request.get("target_audience","general"))
+    content_request.get("tone", "neutral")
+    content_request.get("target_audience", "general")
+
     user = USER_PROMPT_TEMPLATE.format(
         type=content_request["type"],
         topic=content_request["topic"],
