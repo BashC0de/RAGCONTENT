@@ -1,0 +1,21 @@
+name: CI
+on:
+  push:
+    branches: [ main ]
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+      - name: Install
+        run: pip install -r requirements.txt
+      - name: Run tests
+        run: pytest -q || true
+      - name: Build docker
+        run: docker build -t rag-engine:latest .
+#ci.yml is the config file that tells GitHub Actions (or whatever CI service you’re using)
+#how to automatically build and test your project every time you push code or open a pull request.

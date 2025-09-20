@@ -1,0 +1,30 @@
+# fastapi==1.6.2
+# In requirements.txt
+fastapi>=0.103.0
+pydantic>=2.8.0,<3
+
+uvicorn==0.22.0
+# pydantic==1.10.9
+python-dotenv==1.0.0
+# requests==2.31.0
+openai==1.9.0
+cohere==4.0.0
+pinecone-client==2.2.2
+# weaviate-client==3.0.0
+weaviate-client>=4.13.0
+requests>=2.31.0
+faiss-cpu==1.7.4
+langchain==0.1.0   # placeholder - pin to a stable version you use
+redis==4.6.0
+celery==5.3.1
+sqlalchemy>=2.0,<2.1
+alembic==1.11.0
+modelcontextprotocol
+psycopg2-binary==2.9.7
+gunicorn==21.2.0
+python-multipart==0.0.6
+scikit-learn
+beautifulsoup4 
+feedparser 
+
+
