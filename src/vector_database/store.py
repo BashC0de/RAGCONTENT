@@ -26,7 +26,7 @@ if USE == "pinecone":
             name=INDEX_NAME,
             dimension=1536,  # set your embedding size
             metric="cosine",
-            spec=ServerlessSpec(cloud="aws", region="us-west-2")
+            spec=ServerlessSpec(cloud="aws", region="us-west-1", pod_type="p1.x1")
         )
 
     index = pc.index(INDEX_NAME)
