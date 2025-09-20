@@ -41,14 +41,23 @@ import os
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index = pc.Index("rag-index")       # change to your index name
 openai_client = OpenAI()
+#iam gonna use when i have openAI api key 
+# def _embed(text: str) -> list[float]:
+#     """Get dense vector for a query using OpenAI embeddings."""
+#     resp = openai_client.embeddings.create(
+#         input=text,
+#         model="text-embedding-3-large"
+#     )
+#     return resp.data[0].embedding
+from sentence_transformers import SentenceTransformer
 
-def _embed(text: str) -> list[float]:
-    """Get dense vector for a query using OpenAI embeddings."""
-    resp = openai_client.embeddings.create(
-        input=text,
-        model="text-embedding-3-large"
-    )
-    return resp.data[0].embedding
+# Initialize once globally
+embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+def _embed(text: str):
+    """Return vector embedding for a string using SentenceTransformers."""
+    vec = embedding_model.encode([text])[0]  # list of floats
+    return vec.tolist()
 
 def retrieve_context_documents(query: str, top_k: int = 5) -> list[str]:
     """

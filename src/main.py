@@ -21,6 +21,11 @@ from src.generation_pipeline.generator import generate_content
 
 load_dotenv()
 print("PINECONE_API_KEY:", os.getenv("PINECONE_API_KEY"))
+import os
+import openai
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+print("OpenAI API Key Loaded:", bool(openai.api_key))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
