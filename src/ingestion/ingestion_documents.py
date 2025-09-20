@@ -21,14 +21,20 @@ from vector_database.store import upsert_vectors
 # Ex ingestion sources — adapt these to your needs.
 
 DEFAULT_URLS = [
-    "https://example.com/industry-news",
-    # add more URLs or fetch from a config file/DB
+    "https://techcrunch.com",
+    "https://www.theverge.com/tech",
+    "https://arstechnica.com",
+    "https://www.zdnet.com",
 ]
 
+
 DEFAULT_RSS_FEEDS = [
-    "https://example.com/feed.xml",
-    # add more feeds
+    "https://techcrunch.com/feed/",
+    "https://feeds.arstechnica.com/arstechnica/index/",
+    "https://www.theverge.com/rss/index.xml",
+    "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",
 ]
+
 
 
 def ingest_sources(

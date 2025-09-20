@@ -43,6 +43,29 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+from fastapi import FastAPI
+from src.generation import generate_content  # or same file if you combined
+from src.generation import select_model, build_prompt, retrieve_context_documents
+
+app = FastAPI()
+
+@app.post("/generate")
+async def generate_endpoint(content_request: dict):
+    # Grab documents from your RAG retriever
+    context_docs = retrieve_context_documents(content_request["topic"])
+    
+    generation_config = {
+        "model": content_request.get("model", "openai"),
+        "temperature": content_request.get("temperature", 0.7),
+        "max_tokens": content_request.get("max_tokens", 1500)
+    }
+
+    # 👉 THIS is where you insert those two lines
+    model_choice = select_model(generation_config.get("model"))
+    prompt = build_prompt(content_request, context_docs)
+
+    result = generate_content(content_request, context_docs, generation_config)
+    return result
 
 # Register API routes
 app.include_router(api_router, prefix="/api")

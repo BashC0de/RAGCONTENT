@@ -25,9 +25,39 @@ def run_rag_pipeline(request_payload: dict):
     logger.info("RAG pipeline completed.")
     return result
 from src.generation_pipeline.postprocess import postprocess_generated
-def retrieve_context_documents(query: str):
-    # TODO: Replace with actual RAG retrieval
-    return ["Document 1 text...", "Document 2 text..."]
+from pinecone import Pinecone
+from openai import OpenAI
+import os
+
+# init clients
+pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+index = pc.Index("rag-index")       # change to your index name
+openai_client = OpenAI()
+
+def _embed(text: str) -> list[float]:
+    """Get dense vector for a query using OpenAI embeddings."""
+    resp = openai_client.embeddings.create(
+        input=text,
+        model="text-embedding-3-large"
+    )
+    return resp.data[0].embedding
+
+def retrieve_context_documents(query: str, top_k: int = 5) -> list[str]:
+    """
+    Retrieve top_k most relevant docs for the query from Pinecone.
+    Returns a list of document texts.
+    """
+    query_vec = _embed(query)
+
+    results = index.query(
+        vector=query_vec,
+        top_k=top_k,
+        include_metadata=True
+    )
+
+    # pull the stored text field from metadata
+    return [match["metadata"].get("text", "") for match in results["matches"]]
+
  
 
 def run_rag_pipeline(request_payload: dict):
