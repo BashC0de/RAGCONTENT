@@ -3,6 +3,14 @@ from src.retrieval.retriever import retrieve_for_query
 
 from src.generation_pipeline.generator import generate_content
 from src.utils.logger import logger
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # this loads the .env file
+
+from pinecone import Pinecone
+
+pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 
 def run_rag_pipeline(request_payload: dict):
     """
