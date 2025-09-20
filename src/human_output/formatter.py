@@ -13,7 +13,7 @@ Responsibilities:
 from typing import Dict
 import datetime
 import re
-from utils.logger import logger
+from src.utils.logger import logger
 
 
 def normalize_whitespace(text: str) -> str:

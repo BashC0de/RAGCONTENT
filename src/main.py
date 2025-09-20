@@ -5,48 +5,68 @@ This file glues together all routers, config, logging, and startup/shutdown task
 
 from contextlib import asynccontextmanager
 import os
-
 from fastapi import FastAPI
 from dotenv import load_dotenv
 
-from src.api.routes import router as api_router          # REST endpoints
-from src.utils.logger import logger                      # Central logger
-from src.config import settings                          # App config (env vars)
+from src.api.routes import router as api_router          # Extra REST endpoints
+from src.utils.logger import logger                      # Centralized logging
+from src.config import settings                          # Env/config variables
 from src.vector_database.store import init_vector_store   # Vector DB init
 from src.tasks.celery_task import start_celery_worker    # Background tasks
-from src.generation import generate_content, select_model, build_prompt, retrieve_context_documents
+from src.generation_pipeline.generator import generate_content, select_model
+from src.generation.prompt_templates import build_prompt
+from src.generation.orchestrator import retrieve_context_documents
+from src.human_output.formatter import format_output
+from src.generation_pipeline.generator import generate_content
 
-# Load environment variables
 load_dotenv()
-print("PINECONE_API_KEY:", os.getenv("PINECONE_API_KEY"))  # verify env loaded
-
-# App lifespan (startup/shutdown)
+print("PINECONE_API_KEY:", os.getenv("PINECONE_API_KEY"))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting RAG Content Generation Engine…")
 
-    # Initialize vector DB connection
     try:
         init_vector_store()
         logger.info("Vector database initialized.")
     except Exception as e:
         logger.warning(f"Vector DB init skipped or failed: {e}")
 
-    # Start Celery worker (background tasks)
     try:
         start_celery_worker()
         logger.info("Celery worker launched.")
     except Exception as e:
         logger.warning(f"Celery not started: {e}")
 
-    yield  # App runs while this context is active
+    yield  # app runs here
 
     logger.info("Shutting down RAG Content Generation Engine…")
-    # Add any cleanup here (close DB connections, flush caches, etc.)
 
+query = "Explain how vector databases are used in RAG systems."
+context_docs = retrieve_context_documents(query)  
+generation_config = {
+    "model": "openai",
+    "temperature": 0.7,
+    "max_tokens": 1500
+}
+raw_output = generate_content(query)
+formatted_output = format_output(
+    generated=raw_output,
+    style="professional_conversational",
+    output_format="markdown",
+    add_metadata=True
+)
+print(formatted_output["formatted_text"])
+raw_output = generate_content(query, context_docs, generation_config)
 
-# FastAPI app
+from src.human_output.formatter import format_output
+formatted_output = format_output(
+    generated=raw_output,
+    style="professional_conversational",
+    output_format="markdown",
+    add_metadata=True
+)
+print(formatted_output["formatted_text"])
 
 app = FastAPI(
     title="RAG Content Generation Engine",
@@ -54,37 +74,24 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Health-check endpoint
 @app.get("/health", tags=["system"])
 async def health_check():
     return {"status": "ok"}
 
-# RAG content generation endpoint
 @app.post("/generate")
 async def generate_endpoint(content_request: dict):
-    # Retrieve documents
     context_docs = retrieve_context_documents(content_request["topic"])
-    
-    # Build generation config
     generation_config = {
         "model": content_request.get("model", "openai"),
         "temperature": content_request.get("temperature", 0.7),
         "max_tokens": content_request.get("max_tokens", 1500)
     }
-
-    # Model selection & prompt building
     model_choice = select_model(generation_config.get("model"))
     prompt = build_prompt(content_request, context_docs)
-
-    # Generate content
     result = generate_content(content_request, context_docs, generation_config)
     return result
 
-# Include additional API routes
 app.include_router(api_router, prefix="/api")
-
-
-# Uvicorn entry
 
 if __name__ == "__main__":
     import uvicorn
@@ -94,3 +101,4 @@ if __name__ == "__main__":
         port=settings.APP_PORT,
         reload=True
     )
+
