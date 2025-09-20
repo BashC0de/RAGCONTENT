@@ -55,11 +55,19 @@ generation_config = {
     "max_tokens": 1500
 }
 content_request = {
-    "query": query,
-    "tone": "professional",
-    "target_audience": "developers"
+    "query": query,                       # The main user query or topic
+    "topic": query,                       # Topic for the content
+    "type": "blog",                        # Content type: blog, email, social_post, etc.
+    "tone": "professional",               # Tone: professional, casual, humorous, etc.
+    "style": "professional_conversational", # Style: professional_conversational, technical, etc.
+    "target_audience": "developers",      # Audience: developers, marketers, students, general
+    "length": "medium",                    # Optional: short, medium, long
+    # "style": "informative",                # Optional: narrative, informative, persuasive, etc.
+    "keywords": [],                        # Optional: list of keywords to include
+    "additional_instructions": ""         # Optional: any extra instructions for the model
 }
 
+# Call your content generation function
 raw_output = generate_content(content_request, context_docs, generation_config)
 
 formatted_output = format_output(
