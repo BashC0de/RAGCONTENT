@@ -63,7 +63,6 @@ def select_model(preferred=None):
 #     )
 
 #     return resp
-
 def generate_content(content_request: Dict, context_docs: List[Dict], generation_config: Dict) -> Dict:
     """
     Generate text using OpenAI, Claude, or Gemini depending on generation_config["model"].
@@ -75,6 +74,7 @@ def generate_content(content_request: Dict, context_docs: List[Dict], generation
         {"role": "system", "content": "You are a helpful AI content generator."},
         {"role": "user", "content": prompt}
     ]
+    
     # === OpenAI ===
     if isinstance(model_choice, openai.OpenAI) or model_choice == "openai":
         openai.api_key = settings.OPENAI_API_KEY
@@ -85,9 +85,7 @@ def generate_content(content_request: Dict, context_docs: List[Dict], generation
             temperature=generation_config.get("temperature", 0.7),
             max_tokens=generation_config.get("max_tokens", 600)
         )
-
-        generated_text = resp.choices[0].message.content
-        text = resp["choices"][0]["message"]["content"]
+        text = resp.choices[0].message.content
 
     # === Claude (Anthropic) ===
     elif isinstance(model_choice, Anthropic):
@@ -100,23 +98,20 @@ def generate_content(content_request: Dict, context_docs: List[Dict], generation
         )
         text = resp.content[0].text
 
-    elif isinstance(model_choice, str) and model_choice.startswith("gemini"):
+    # === Gemini ===
+    elif isinstance(model_choice, str) and model_choice.lower().startswith("gemini"):
         import google.generativeai as genai
         genai.configure(api_key=settings.GEMINI_API_KEY)
 
-        gmodel = genai.GenerativeModel(
-        generation_config.get("model", "gemini-2.5-pro")
-    )
-
-        resp = gmodel.generate_content(
+        gmodel = genai.TextGenerationModel(
+            model=generation_config.get("model", "gemini-2.5-pro")
+        )
+        resp = gmodel.generate(
             prompt,
-            generation_config={
-                "temperature": generation_config.get("temperature", 0.7),
-                "max_output_tokens": generation_config.get("max_tokens", 1500),
-            },
+            max_output_tokens=generation_config.get("max_tokens", 600),
+            temperature=generation_config.get("temperature", 0.7)
         )
         text = resp.text
-
 
     else:
         logger.warning(f"Model {model_choice} not implemented fully; returning placeholder.")
@@ -127,4 +122,5 @@ def generate_content(content_request: Dict, context_docs: List[Dict], generation
         "model": generation_config.get("model"),
         "metadata": {"used_docs": [d["id"] for d in context_docs]}
     }
+
 

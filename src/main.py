@@ -27,6 +27,12 @@ import openai
 openai.api_key = os.getenv("OPENAI_API_KEY")
 print("OpenAI API Key Loaded:", bool(openai.api_key))
 print(settings.GEMINI_API_KEY)
+
+import redis
+
+r = redis.Redis(host='localhost', port=6379, db=1)
+print(r.ping())  # Should print True
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting RAG Content Generation Engine…")
