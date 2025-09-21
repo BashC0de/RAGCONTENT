@@ -1,12 +1,27 @@
+# Use slim Python image to keep it lightweight
 FROM python:3.10-slim
 
+# Set working directory
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy only requirements first for caching
+COPY requirements.txt .
+
+# Upgrade pip and install dependencies
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of your source code
 COPY src/ /app/src/
+
+# Set working directory to src
 WORKDIR /app/src
 
+# Set Python path so imports work correctly
 ENV PYTHONPATH=/app/src
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Expose port
+EXPOSE 8000
+
+# Default command to run FastAPI
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
