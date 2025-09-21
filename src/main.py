@@ -26,7 +26,7 @@ import openai
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 print("OpenAI API Key Loaded:", bool(openai.api_key))
-
+print(settings.GEMINI_API_KEY)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting RAG Content Generation Engine…")
@@ -52,7 +52,7 @@ context_docs = retrieve_context_documents(query)
 generation_config = {
 
 }
-content_request = {
+query_dict = {
     "query": query,                       # The main user query or topic
     "topic": query,                       # Topic for the content
     "type": "blog",                        # Content type: blog, email, social_post, etc.
@@ -68,12 +68,12 @@ content_request = {
 
 context_docs = retrieve_context_documents(query)  # make sure this returns a list of dicts with 'content'
 generation_config = {
-    "model": "gpt-3.5-turbo",
+    "model": "Gemini-2.5-pro",  
     "temperature": 0.7,
-    "max_tokens": 200
+    "max_tokens": 600
 } # your generation settings
 # Call your content generation function
-raw_output = generate_content(content_request, context_docs, generation_config)
+raw_output = generate_content(query_dict, context_docs, generation_config)
 
 formatted_output = format_output(
     generated=raw_output,
@@ -82,7 +82,7 @@ formatted_output = format_output(
     add_metadata=True
 )
 print(formatted_output["formatted_text"])
-raw_output = generate_content(query, context_docs, generation_config)
+raw_output = generate_content(query_dict, context_docs, generation_config)
 
 from src.human_output.formatter import format_output
 formatted_output = format_output(

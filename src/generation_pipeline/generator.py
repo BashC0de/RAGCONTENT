@@ -41,28 +41,28 @@ def select_model(preferred=None):
     # Default to OpenAI
     return OpenAI(api_key=settings.OPENAI_API_KEY)
 
-from huggingface_hub import InferenceClient
+# from huggingface_hub import InferenceClient
 
-def generate_content(content_request, context_docs, generation_config):
-    # …whatever prep code you already have…
+# def generate_content(content_request, context_docs, generation_config):
+#     # …whatever prep code you already have…
 
-    # build your full prompt
-    prompt = f"{content_request}\n\nContext:\n{context_docs}"
+#     # build your full prompt
+#     prompt = f"{content_request}\n\nContext:\n{context_docs}"
 
-    # create HF client (do this once at the top of the file ideally)
-    client = InferenceClient(
-        "tiiuae/falcon-7b-instruct",
-        token="hf_your_token_here"
-    )
+#     # create HF client (do this once at the top of the file ideally)
+#     client = InferenceClient(
+#         "tiiuae/falcon-7b-instruct",
+#         token="hf_your_token_here"
+#     )
 
-    # call the model
-    resp = client.text_generation(
-        prompt,
-        max_new_tokens=400,
-        temperature=generation_config.get("temperature", 0.7)
-    )
+#     # call the model
+#     resp = client.text_generation(
+#         prompt,
+#         max_new_tokens=400,
+#         temperature=generation_config.get("temperature", 0.7)
+#     )
 
-    return resp
+#     return resp
 
 def generate_content(content_request: Dict, context_docs: List[Dict], generation_config: Dict) -> Dict:
     """

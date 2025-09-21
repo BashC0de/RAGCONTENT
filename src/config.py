@@ -12,6 +12,7 @@ class Settings:
     FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", "gpt-4o")
 
     EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER", "openai")
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     COHERE_API_KEY = os.getenv("COHERE_API_KEY")
 
