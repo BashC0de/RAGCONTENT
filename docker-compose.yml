@@ -1,8 +1,8 @@
 services:
   fastapi:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     container_name: rag_fastapi
     ports:
       - "8000:8000"
@@ -17,13 +17,13 @@ services:
     depends_on:
       - redis
     volumes:
-      - ../src:/app/src
+      - ./src:/app/src
 
 
   celery_worker:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     container_name: rag_celery
     command: celery -A src.tasks worker --loglevel=info
     env_file:
@@ -37,7 +37,7 @@ services:
     depends_on:
       - redis
     volumes:
-      - ../src:/app/src
+      - ./src:/app/src
 
 
   redis:
