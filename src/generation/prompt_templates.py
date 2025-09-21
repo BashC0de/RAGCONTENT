@@ -34,7 +34,7 @@ Detailed Instructions:
 def build_prompt(content_request: dict, context_docs: list) -> str:
     """
     Build a user prompt for content generation.
-    
+
     Args:
         content_request (dict): User request containing topic, type, tone, style, etc.
         context_docs (list): List of context documents to include in the prompt.
@@ -60,7 +60,7 @@ def build_prompt(content_request: dict, context_docs: list) -> str:
     data = {**defaults, **content_request}
 
     # Combine context documents into a single string
-    context_text = "\n".join([doc.get("text", "") for doc in context_docs]) if context_docs else "No context provided."
+    context_text = "\n".join([doc.get("content", doc.get("text", "")) for doc in context_docs]) if context_docs else "No context provided."
 
     # Prepare prompt
     prompt = f"""
@@ -75,7 +75,7 @@ Detailed Instructions:
 • Tone & Voice: {data['tone']}
 • Style Guide: {data['style']} (adopt consistent formatting, headings, bullet points as needed)
 • SEO Keywords/Phrases: {', '.join(data['keywords']) if data['keywords'] else "none specified"} — weave these in naturally without keyword stuffing.
-• Approx. Length: {data['length']} words
+• Approx. Length: {data['length']}
 • Formatting: Use Markdown for headings, subheadings, bullet points, and code snippets as needed.
 • Structure: Start with a compelling hook/intro, develop key arguments or insights in well-labeled sections, and end with a concise conclusion or call to action.
 • Citations: Reference context sources explicitly (e.g., “[Source 2]”) for every factual statement.

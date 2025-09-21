@@ -18,6 +18,7 @@ from loguru import logger
 from anthropic import Anthropic
 import google.generativeai as genai
 import openai
+from src.generation.prompt_templates import build_prompt
 
 def select_model(preferred=None):
     """
@@ -40,24 +41,28 @@ def select_model(preferred=None):
     # Default to OpenAI
     return OpenAI(api_key=settings.OPENAI_API_KEY)
 
+from huggingface_hub import InferenceClient
 
-def build_prompt(content_request: Dict, context_docs: List[Dict]) -> str:
-    context = "\n\n".join([f"[source:{d.get('id')}] {d.get('text')[:1000]}" for d in context_docs])
-    system = SYSTEM_PROMPT.format(style="professional", tone=content_request.get("tone","neutral"), audience=content_request.get("target_audience","general"))
-    content_request.get("tone", "neutral")
-    content_request.get("target_audience", "general")
+def generate_content(content_request, context_docs, generation_config):
+    # …whatever prep code you already have…
 
-    user = USER_PROMPT_TEMPLATE.format(
-        type=content_request["type"],
-        topic=content_request["topic"],
-        word_count=content_request.get("word_count",600),
-        target_audience=content_request.get("target_audience","general"),
-        context=context,
-        tone=content_request.get("tone","professional_conversational"),
-        keywords=", ".join(content_request.get("seo_keywords", []))
+    # build your full prompt
+    prompt = f"{content_request}\n\nContext:\n{context_docs}"
+
+    # create HF client (do this once at the top of the file ideally)
+    client = InferenceClient(
+        "tiiuae/falcon-7b-instruct",
+        token="hf_your_token_here"
     )
-    return system + "\n\n" + user
 
+    # call the model
+    resp = client.text_generation(
+        prompt,
+        max_new_tokens=400,
+        temperature=generation_config.get("temperature", 0.7)
+    )
+
+    return resp
 
 def generate_content(content_request: Dict, context_docs: List[Dict], generation_config: Dict) -> Dict:
     """
@@ -65,16 +70,23 @@ def generate_content(content_request: Dict, context_docs: List[Dict], generation
     """
     model_choice = select_model(generation_config.get("model"))
     prompt = build_prompt(content_request, context_docs)
-
+    
+    messages = [
+        {"role": "system", "content": "You are a helpful AI content generator."},
+        {"role": "user", "content": prompt}
+    ]
     # === OpenAI ===
     if isinstance(model_choice, openai.OpenAI) or model_choice == "openai":
         openai.api_key = settings.OPENAI_API_KEY
-        resp = openai.ChatCompletion.create(
-            model=generation_config.get("model", "gpt-4o"),
-            messages=[{"role": "system", "content": prompt}],
+
+        resp = openai.chat.completions.create(
+            model=generation_config.get("model", "gpt-4"),
+            messages=messages,
             temperature=generation_config.get("temperature", 0.7),
-            max_tokens=generation_config.get("max_tokens", 1500)
+            max_tokens=generation_config.get("max_tokens", 600)
         )
+
+        generated_text = resp.choices[0].message.content
         text = resp["choices"][0]["message"]["content"]
 
     # === Claude (Anthropic) ===
@@ -88,14 +100,23 @@ def generate_content(content_request: Dict, context_docs: List[Dict], generation
         )
         text = resp.content[0].text
 
-    # === Gemini ===
-    elif hasattr(model_choice, "GenerativeModel"):   # google.generativeai module
+    elif isinstance(model_choice, str) and model_choice.startswith("gemini"):
+        import google.generativeai as genai
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        gmodel = genai.GenerativeModel(generation_config.get("model", "gemini-1.5-pro"))
-        resp = gmodel.generate_content(prompt,
-                                       generation_config={"temperature": generation_config.get("temperature", 0.7),
-                                                          "max_output_tokens": generation_config.get("max_tokens", 1500)})
+
+        gmodel = genai.GenerativeModel(
+        generation_config.get("model", "gemini-2.5-pro")
+    )
+
+        resp = gmodel.generate_content(
+            prompt,
+            generation_config={
+                "temperature": generation_config.get("temperature", 0.7),
+                "max_output_tokens": generation_config.get("max_tokens", 1500),
+            },
+        )
         text = resp.text
+
 
     else:
         logger.warning(f"Model {model_choice} not implemented fully; returning placeholder.")

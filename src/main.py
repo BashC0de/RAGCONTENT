@@ -50,9 +50,7 @@ async def lifespan(app: FastAPI):
 query = "Explain how vector databases are used in RAG systems."
 context_docs = retrieve_context_documents(query)  
 generation_config = {
-    "model": "openai",
-    "temperature": 0.7,
-    "max_tokens": 1500
+
 }
 content_request = {
     "query": query,                       # The main user query or topic
@@ -60,6 +58,7 @@ content_request = {
     "type": "blog",                        # Content type: blog, email, social_post, etc.
     "tone": "professional",               # Tone: professional, casual, humorous, etc.
     "style": "professional_conversational", # Style: professional_conversational, technical, etc.
+    "audience_expertise": "general",  
     "target_audience": "developers",      # Audience: developers, marketers, students, general
     "length": "medium",                    # Optional: short, medium, long
     # "style": "informative",                # Optional: narrative, informative, persuasive, etc.
@@ -67,6 +66,12 @@ content_request = {
     "additional_instructions": ""         # Optional: any extra instructions for the model
 }
 
+context_docs = retrieve_context_documents(query)  # make sure this returns a list of dicts with 'content'
+generation_config = {
+    "model": "gpt-3.5-turbo",
+    "temperature": 0.7,
+    "max_tokens": 200
+} # your generation settings
 # Call your content generation function
 raw_output = generate_content(content_request, context_docs, generation_config)
 
