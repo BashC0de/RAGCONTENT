@@ -19,7 +19,7 @@ def init_vector_store():
     # Initialize Pinecone
     pinecone.init(
         api_key=os.getenv("PINECONE_API_KEY"), 
-        environment="us-east1-gcp"  # replace with your env
+        environment="us-east-1"  # replace with your env
     )
 
     index_name = "my-index"
