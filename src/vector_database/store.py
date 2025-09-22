@@ -11,6 +11,15 @@ import uuid
 from typing import List, Dict
 from src.config import settings
 from src.utils.logger import logger
+import pinecone
+
+def init_vector_store():
+    pinecone.init(api_key=os.getenv("PINECONE_API_KEY"), environment="us-east1-gcp")
+    # Example: create or connect to an index
+    if "my-index" not in pinecone.list_indexes():
+        pinecone.create_index("my-index", dimension=1536)
+    index = pinecone.Index("my-index")
+    return index
 
 VECTOR_STORE: List[Dict] = []
 FAISS_INDEX = None
