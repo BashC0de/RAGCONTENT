@@ -13,13 +13,25 @@ from src.config import settings
 from src.utils.logger import logger
 import pinecone
 
+
+
 def init_vector_store():
-    pinecone.init(api_key=os.getenv("PINECONE_API_KEY"), environment="us-east1-gcp")
-    # Example: create or connect to an index
-    if "my-index" not in pinecone.list_indexes():
-        pinecone.create_index("my-index", dimension=1536)
-    index = pinecone.Index("my-index")
+    # Initialize Pinecone
+    pinecone.init(
+        api_key=os.getenv("PINECONE_API_KEY"), 
+        environment="us-east1-gcp"  # replace with your env
+    )
+
+    index_name = "my-index"
+
+    # Create the index if it doesn't exist
+    if index_name not in pinecone.list_indexes():
+        pinecone.create_index(name=index_name, dimension=1536)
+
+    # Connect to the index
+    index = pinecone.Index(index_name)
     return index
+
 
 VECTOR_STORE: List[Dict] = []
 FAISS_INDEX = None
